@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 import random
-from models import Player
 import time
+import pandas as pd
+
+from models import Player
 
 
 class zone(Enum):
@@ -18,46 +20,33 @@ class Puck:
     player: Player = None
 
 
-def shoot(game, player):
-    chance = random.randint(0, 1)
+class BoxScore:
+    def __init__(self, home, away) -> None:
+        idx = 0
+        data = {}
+        stats_names = ["goals"]
+        for team in [home, away]:
+            for player in team.players:
+                data[idx] = [
+                    team.name,
+                    player.id,
+                ]
+                for _ in stats_names:
+                    data[idx].append(0)
+                idx += 1
+        self.stats = pd.DataFrame.from_dict(data, orient='index', columns=["team", "player"] + stats_names)
 
-    if chance == 0:
-        game.score[game.team_by_player[player.id].name]["goals"] += 1
-        game.puck.zone = zone.OUT_OF_PLAY
-        game.puck.player = None
-        action = "scored!"
-    elif chance == 1:
-        idx = random.randint(0, len(game.on_ice_players) - 1)
-        game.puck.player = game.on_ice_players[idx]
-        action = f"missed, now {game.puck.player} has the puck."
-    print(f"{game.timer}: {player} {action}")
+    def add_goal(self, player):
+        self.stats.loc[self.stats['player'] == player.id, 'goals'] += 1
 
+    def get_score(self):
+        score = dict()
+        for team in self.stats["team"].unique():
+            score[team] = self.stats[self.stats["team"] == team]['goals'].sum()
+        return score
 
-def pass_to_player(game, player, target_player):
-    chance = random.randint(0, 1)
-    if chance == 0:
-        game.puck.player = target_player
-    elif chance == 1:
-        game.puck.player = game.on_ice_players[random.randint(0, len(game.on_ice_players) - 1 )]
-    print(f"{game.timer}: {player} passed to {game.puck.player}")
-
-
-def face_off(game, player_a, player_b):
-    game.puck.player = [player_a, player_b][random.randint(0, 1)]
-    game.puck.zone = zone.NEWTRAL
-    print(f"{game.timer}: faceoff won by {game.puck.player}")
-
-
-def do_something(game, player):
-
-    team = game.team_by_player[player.id]
-
-    option = random.randint(0, 1)
-    if option == 0:
-        shoot(game, player)
-    elif option == 1:
-        player_b = team.players[random.randint(0, len(team.players) - 1)]
-        pass_to_player(game, player, player_b)
+    def __str__(self) -> str:
+        return str(self.get_score())
 
 
 class Game:
@@ -78,26 +67,58 @@ class Game:
                 self.on_ice_players[p.id] = p
 
         self.puck = Puck(zone=zone.OUT_OF_PLAY)
+        self.boxscore = BoxScore(self.home_team, self.away_team)
 
-        self.score = {
-            self.home_team.name: dict(goals=0),
-            self.away_team.name: dict(goals=0),
-        }
+    def player_shoot(self, player):
+        chance = random.randint(0, 1)
 
+        if chance == 0:
+            self.boxscore.add_goal(player)
+            self.puck.zone = zone.OUT_OF_PLAY
+            self.puck.player = None
+            action = "scored!"
+        elif chance == 1:
+            idx = random.randint(0, len(self.on_ice_players) - 1)
+            self.puck.player = self.on_ice_players[idx]
+            action = f"missed, now {self.puck.player} has the puck."
+        print(f"{self.timer}: {player} {action}")
+
+    def player_pass(self, player, target_player):
+        chance = random.randint(0, 1)
+        if chance == 0:
+            self.puck.player = target_player
+        elif chance == 1:
+            self.puck.player = self.on_ice_players[random.randint(0, len(self.on_ice_players) - 1 )]
+        print(f"{self.timer}: {player} passed to {self.puck.player}")
+
+    def face_off(self, player_a, player_b):
+        self.puck.player = [player_a, player_b][random.randint(0, 1)]
+        self.puck.zone = zone.NEWTRAL
+        print(f"{self.timer}: faceoff won by {self.puck.player}")
+
+    def do_something(self, player):
+
+        team = self.team_by_player[player.id]
+
+        option = random.randint(0, 1)
+        if option == 0:
+            self.player_shoot(player)
+        elif option == 1:
+            player_b = team.players[random.randint(0, len(team.players) - 1)]
+            self.player_pass(player, player_b)
 
     def run(self):
         while self.timer > 0:
             if self.puck.zone == zone.OUT_OF_PLAY:
-                face_off(self, self.home_team.players[-1], self.away_team.players[-1])
+                self.face_off(self.home_team.players[-1], self.away_team.players[-1])
             else:
-                do_something(self, self.puck.player)
+                self.do_something(self.puck.player)
             
             self.timer -= 1
-            time.sleep(1)
+            time.sleep(0.5)
 
     def print_score(self):
-        print(f"HOME: {self.home_team.name}: {self.score[self.home_team.name]['goals']}")
-        print(f"AWAY: {self.away_team.name}: {self.score[self.away_team.name]['goals']}")
+        print(self.boxscore.get_score())
 
 if __name__ == "__main__":
 
@@ -127,9 +148,6 @@ if __name__ == "__main__":
                 )
             )
             i += 1
-
-    # for team in teams:
-    #     print(team)
 
     game = Game(
         home_team=teams[0],
