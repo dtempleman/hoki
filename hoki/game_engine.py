@@ -4,7 +4,7 @@ import random
 import time
 import pandas as pd
 
-from engine.player import Player
+from hoki.player import Player
 
 
 class zone(Enum):
@@ -75,33 +75,15 @@ class Game:
     def __init__(self, home_team, away_team) -> None:
 
         self.timer = 30
-        self.pass_stack = []
+        self.posession_stack = []
 
         self.home_team = home_team
         self.away_team = away_team
 
+        # TODO: both player_by_id and team_by_id are set in the _generate_lineups() function. it is not clear that this is happening
         self.players_by_id = {}
         self.teams_by_id = {}
-
-        idx = 0
-        data = {}
-        for home, team in enumerate([self.away_team, self.home_team]):
-            self.teams_by_id[team.name] = team
-
-            for player in team.players:
-                self.players_by_id[player.id] = player
-
-                data[idx] = [
-                    home == 1,
-                    team.name,
-                    player.id,
-                    player.name,
-                    player.position,
-                    True,
-                ]
-                idx += 1
-
-        self.lineups = pd.DataFrame.from_dict(data, orient='index', columns=["home", "team", "player-id", "player", "position", "on-ice"])
+        self.lineups = self._generate_lineups()
 
         self.puck = Puck(zone=zone.OUT_OF_PLAY)
         self.boxscore = BoxScore(self.home_team, self.away_team)
@@ -127,6 +109,24 @@ class Game:
         else:
             player = self.lineups.sample()
         return self.players_by_id[player["player-id"].values[0]]
+
+    def _generate_lineups(self):
+        idx = 0
+        data = {}
+        for home, team in enumerate([self.away_team, self.home_team]):
+            self.teams_by_id[team.name] = team
+            for player in team.players:
+                self.players_by_id[player.id] = player
+                data[idx] = [
+                    home == 1,
+                    team.name,
+                    player.id,
+                    player.name,
+                    player.position,
+                    True,
+                ]
+                idx += 1
+        return pd.DataFrame.from_dict(data, orient='index', columns=["home", "team", "player-id", "player", "position", "on-ice"])
 
     def player_shoot(self, player):
         chance = random.uniform(0, 1)

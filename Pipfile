@@ -5,7 +5,9 @@ name = "pypi"
 
 [packages]
 pandas = "*"
-names = "*"
+faker = "*"
+flake8 = "*"
+black = "*"
 
 [dev-packages]
 

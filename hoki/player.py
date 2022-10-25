@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List
 import random
-import names
+
+from hoki import faker
 
 
 class position(Enum):
@@ -34,21 +35,10 @@ class Player:
     position: position
     shoots: stick_hand
     stats: Stats
+    jersey: int 
 
     def __str__(self):
-        return f"{self.name}: {self.position.name} | {self.stats}"
-
-
-@dataclass
-class Team:
-    name: str
-    players: List[Player] = field(default_factory=lambda: [])
-
-    def __str__(self):
-        string = f"{self.name}:\n"
-        for p in self.players:
-            string += f"{p}\n"
-        return string
+        return f"{self.name}: {self.position.name} #{self.jersey} | {self.stats}"
 
 
 def generate_inital_stats():
@@ -61,4 +51,4 @@ def generate_inital_stats():
 
 
 def generate_player_name():
-    return names.get_full_name()
+    return faker.name()
