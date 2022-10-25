@@ -23,7 +23,7 @@ class Puck:
 class GameEvents:
     def __init__(self, home, away) -> None:
         pass
-    
+
     def add_event(self):
         pass
 
@@ -46,7 +46,9 @@ class BoxScore:
                 for _ in stats_names:
                     data[idx].append(0)
                 idx += 1
-        self.stats = pd.DataFrame.from_dict(data, orient='index', columns=["team", "player-id", "player"] + stats_names)
+        self.stats = pd.DataFrame.from_dict(
+            data, orient="index", columns=["team", "player-id", "player"] + stats_names
+        )
 
     def increment_stat(self, player, stat):
         self.stats.loc[self.stats["player-id"] == player.id, stat] += 1
@@ -64,7 +66,7 @@ class BoxScore:
     def get_score(self):
         score = dict()
         for team in self.stats["team"].unique():
-            score[team] = self.stats[self.stats["team"] == team]['goals'].sum()
+            score[team] = self.stats[self.stats["team"] == team]["goals"].sum()
         return score
 
     def __str__(self) -> str:
@@ -80,7 +82,8 @@ class Game:
         self.home_team = home_team
         self.away_team = away_team
 
-        # TODO: both player_by_id and team_by_id are set in the _generate_lineups() function. it is not clear that this is happening
+        # TODO: both player_by_id and team_by_id are set in the _generate_lineups() function.
+        # it is not clear that this is happening
         self.players_by_id = {}
         self.teams_by_id = {}
         self.lineups = self._generate_lineups()
@@ -95,13 +98,15 @@ class Game:
         return self.lineups.loc[self.lineups["team"] == team.name]
 
     def get_opponent_team(self, player):
-        return self.lineups.loc[self.lineups["team"] != self.get_player_team(player)].team.unique()[0]
+        return self.lineups.loc[
+            self.lineups["team"] != self.get_player_team(player)
+        ].team.unique()[0]
 
     def get_home_team(self):
-        return self.lineups.loc[self.lineups["home"] == True]
-    
+        return self.lineups.loc[self.lineups["home"] is True]
+
     def get_away_team(self):
-        return self.lineups.loc[self.lineups["home"] == False]
+        return self.lineups.loc[self.lineups["home"] is False]
 
     def get_random_player(self, team=None):
         if team:
@@ -126,7 +131,11 @@ class Game:
                     True,
                 ]
                 idx += 1
-        return pd.DataFrame.from_dict(data, orient='index', columns=["home", "team", "player-id", "player", "position", "on-ice"])
+        return pd.DataFrame.from_dict(
+            data,
+            orient="index",
+            columns=["home", "team", "player-id", "player", "position", "on-ice"],
+        )
 
     def player_shoot(self, player):
         chance = random.uniform(0, 1)
@@ -180,7 +189,7 @@ class Game:
                 self.face_off(self.home_team.players[-1], self.away_team.players[-1])
             else:
                 self.do_something(self.puck.player)
-            
+
             self.timer -= 1
             time.sleep(0.5)
 

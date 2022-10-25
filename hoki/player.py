@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List
 import random
 
 from hoki import faker
@@ -35,7 +34,7 @@ class Player:
     position: position
     shoots: stick_hand
     stats: Stats
-    jersey: int 
+    jersey: int
 
     def __str__(self):
         return f"{self.name}: {self.position.name} #{self.jersey} | {self.stats}"

@@ -1,6 +1,12 @@
 import random
 
-from hoki.player import Player, generate_player_name, stick_hand, generate_inital_stats, position
+from hoki.player import (
+    Player,
+    generate_player_name,
+    stick_hand,
+    generate_inital_stats,
+    position,
+)
 from hoki.team import Team, generate_team_name
 from hoki.game_engine import Game
 
@@ -15,10 +21,7 @@ if __name__ == "__main__":
         position.FORWARD,
     ]
 
-    teams = [
-        Team(name=generate_team_name()),
-        Team(name=generate_team_name())
-    ]
+    teams = [Team(name=generate_team_name()), Team(name=generate_team_name())]
     i = 0
     for t in teams:
         for p in positions:
@@ -27,9 +30,11 @@ if __name__ == "__main__":
                     name=generate_player_name(),
                     position=p,
                     id=i,
-                    shoots=stick_hand.LEFT if random.randint(0, 1) == 0 else stick_hand.RIGHT,
+                    shoots=stick_hand.LEFT
+                    if random.randint(0, 1) == 0
+                    else stick_hand.RIGHT,
                     stats=generate_inital_stats(),
-                    jersey=random.randint(0, 99)
+                    jersey=random.randint(0, 99),
                 )
             )
             i += 1
