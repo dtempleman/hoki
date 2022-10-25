@@ -34,10 +34,10 @@ class Player:
     position: position
     shoots: stick_hand
     stats: Stats
-    jersey: int
+    jersey_num: int
 
     def __str__(self):
-        return f"{self.name}: {self.position.name} #{self.jersey} | {self.stats}"
+        return f"{self.name}: {self.position.name} #{self.jersey_num} | {self.stats}"
 
 
 def generate_inital_stats():

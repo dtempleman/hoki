@@ -2,13 +2,14 @@ import random
 
 from hoki.player import (
     Player,
-    generate_player_name,
     stick_hand,
-    generate_inital_stats,
     position,
+    generate_player_name,
+    generate_inital_stats,
 )
-from hoki.team import Team, generate_team_name
+from hoki.team import Team, Jersey, generate_team_name
 from hoki.game_engine import Game
+from hoki import faker
 
 
 if __name__ == "__main__":
@@ -21,7 +22,41 @@ if __name__ == "__main__":
         position.FORWARD,
     ]
 
-    teams = [Team(name=generate_team_name()), Team(name=generate_team_name())]
+    prim_1 = faker.color()
+    sec_1 = faker.color()
+    trim_1 = faker.color()
+    prim_2 = faker.color()
+    sec_2 = faker.color()
+    trim_2 = faker.color()
+
+    teams = [
+        Team(
+            name=generate_team_name(),
+            home_jersey=Jersey(
+                primary_colour=prim_1,
+                secondary_colour=sec_1,
+                trim_colour=trim_1,
+            ),
+            away_jersey=Jersey(
+                primary_colour=sec_1,
+                secondary_colour=prim_1,
+                trim_colour=trim_1,
+            ),
+        ),
+        Team(
+            name=generate_team_name(),
+            home_jersey=Jersey(
+                primary_colour=prim_2,
+                secondary_colour=sec_2,
+                trim_colour=trim_2,
+            ),
+            away_jersey=Jersey(
+                primary_colour=sec_2,
+                secondary_colour=prim_2,
+                trim_colour=trim_2,
+            ),
+        ),
+    ]
     i = 0
     for t in teams:
         for p in positions:
@@ -34,7 +69,7 @@ if __name__ == "__main__":
                     if random.randint(0, 1) == 0
                     else stick_hand.RIGHT,
                     stats=generate_inital_stats(),
-                    jersey=random.randint(0, 99),
+                    jersey_num=random.randint(0, 99),
                 )
             )
             i += 1
