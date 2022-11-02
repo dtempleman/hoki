@@ -8,6 +8,7 @@ pandas = "*"
 faker = "*"
 flake8 = "*"
 black = "*"
+bumpversion = "*"
 
 [dev-packages]
 
