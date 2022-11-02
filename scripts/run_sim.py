@@ -16,11 +16,11 @@ from hoki import faker
 if __name__ == "__main__":
     positions = [
         position.GOALIE,
-        position.DEFENCE,
-        position.DEFENCE,
-        position.FORWARD,
-        position.FORWARD,
-        position.FORWARD,
+        position.DEFENCE_L,
+        position.DEFENCE_R,
+        position.WING_L,
+        position.WING_R,
+        position.CENTRE,
     ]
 
     prim_1 = faker.color()
@@ -75,17 +75,30 @@ if __name__ == "__main__":
                     jersey_num=random.randint(0, 99),
                 )
             )
-            players[i] = [
-                t.name,
-                t.players[-1].name,
-                t.players[-1].position,
-            ] + t.players[-1].stats.df_row()
+            players[i] = (
+                [
+                    t.name,
+                    t.players[-1].name,
+                    t.players[-1].position.name,
+                ]
+                + t.players[-1].stats.df_row()
+                + [t.players[-1].get_player_rating()]
+            )
             i += 1
 
     players = pd.DataFrame.from_dict(
         data=players,
         orient="index",
-        columns=["team", "name", "pos", "positioning", "accuracy", "strength", "iq"],
+        columns=[
+            "team",
+            "name",
+            "pos",
+            "positioning",
+            "accuracy",
+            "strength",
+            "iq",
+            "rating",
+        ],
     )
 
     game = Game(
@@ -93,9 +106,9 @@ if __name__ == "__main__":
         away_team=teams[1],
     )
 
-    print(players)
-    print()
     game.run()
+    print()
+    print(players)
     print()
     game.print_score()
     print()

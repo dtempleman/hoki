@@ -8,8 +8,11 @@ from hoki import faker
 
 class position(Enum):
     GOALIE = auto()
-    FORWARD = auto()
-    DEFENCE = auto()
+    CENTRE = auto()
+    WING_L = auto()
+    WING_R = auto()
+    DEFENCE_L = auto()
+    DEFENCE_R = auto()
 
 
 class stick_hand(Enum):
@@ -42,6 +45,12 @@ class Player:
 
     def __str__(self):
         return f"{self.name}: {self.position.name} #{self.jersey_num} | {self.stats}"
+
+    def get_player_rating(self):
+        x = 0.0
+        for v in self.stats.df_row():
+            x += v
+        return round(x / len(self.stats.df_row()), 2)
 
 
 def generate_inital_stats():
