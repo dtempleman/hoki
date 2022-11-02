@@ -9,6 +9,7 @@ faker = "*"
 flake8 = "*"
 black = "*"
 bumpversion = "*"
+django = "*"
 
 [dev-packages]
 
