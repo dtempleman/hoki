@@ -1,4 +1,5 @@
 import random
+import pandas as pd
 
 from hoki.player import (
     Player,
@@ -57,6 +58,8 @@ if __name__ == "__main__":
             ),
         ),
     ]
+
+    players = {}
     i = 0
     for t in teams:
         for p in positions:
@@ -72,19 +75,28 @@ if __name__ == "__main__":
                     jersey_num=random.randint(0, 99),
                 )
             )
+            players[i] = [
+                t.name,
+                t.players[-1].name,
+                t.players[-1].position,
+            ] + t.players[-1].stats.df_row()
             i += 1
+
+    players = pd.DataFrame.from_dict(
+        data=players,
+        orient="index",
+        columns=["team", "name", "pos", "positioning", "accuracy", "strength", "iq"],
+    )
 
     game = Game(
         home_team=teams[0],
         away_team=teams[1],
     )
 
+    print(players)
+    print()
     game.run()
+    print()
     game.print_score()
-
-    for team in teams:
-        for player in team.players:
-            print(player)
-
-    game.print_score()
+    print()
     print(game.boxscore.stats)

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 import random
+from typing import List
 
 from hoki import faker
 
@@ -25,6 +26,9 @@ class Stats:
 
     def __str__(self) -> str:
         return f"[pos: {self.positioning}, acc: {self.accuracy}, str: {self.strength}, iq: {self.iq}]"
+
+    def df_row(self) -> List:
+        return [self.positioning, self.accuracy, self.strength, self.iq]
 
 
 @dataclass
