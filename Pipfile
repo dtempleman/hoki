@@ -10,6 +10,7 @@ flake8 = "*"
 black = "*"
 bumpversion = "*"
 django = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 

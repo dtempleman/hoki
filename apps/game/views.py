@@ -3,8 +3,8 @@ from django.http import HttpResponse
 
 
 def hello_world(request):
-    return HttpResponse("Hello world")
+    return render(request, "hello.html", context={"name": "daniel"})
 
 
-def games(request):
+def game(request):
     return HttpResponse("Hello world")
