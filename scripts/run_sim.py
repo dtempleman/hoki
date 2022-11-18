@@ -1,16 +1,17 @@
 import random
 import pandas as pd
 
-from hoki.player import (
-    Player,
-    stick_hand,
+from hoki.pawn import (
+    Pawn,
+    dominant_hands,
     position,
     generate_player_name,
-    generate_inital_stats,
 )
-from hoki.team import Team, Jersey, generate_team_name
-from hoki.game_engine import Game
 from hoki import faker
+from hoki.statblock import generate_inital_stats, get_df_row, STAT_NAMES
+from hoki.team import Team, Jersey, generate_team_name
+from hoki.game import GameManager
+from hoki.body import Body
 
 
 if __name__ == "__main__":
@@ -64,15 +65,16 @@ if __name__ == "__main__":
     for t in teams:
         for p in positions:
             t.players.append(
-                Player(
+                Pawn(
                     name=generate_player_name(),
                     position=p,
                     id=i,
-                    shoots=stick_hand.LEFT
+                    shoots=dominant_hands.LEFT
                     if random.randint(0, 1) == 0
-                    else stick_hand.RIGHT,
+                    else dominant_hands.RIGHT,
                     stats=generate_inital_stats(),
                     jersey_num=random.randint(0, 99),
+                    body=Body(),
                 )
             )
             players[i] = (
@@ -81,7 +83,7 @@ if __name__ == "__main__":
                     t.players[-1].name,
                     t.players[-1].position.name,
                 ]
-                + t.players[-1].stats.df_row()
+                + get_df_row(t.players[-1].stats)
                 + [t.players[-1].get_player_rating()]
             )
             i += 1
@@ -93,23 +95,16 @@ if __name__ == "__main__":
             "team",
             "name",
             "pos",
-            "positioning",
-            "accuracy",
-            "strength",
-            "iq",
-            "rating",
+        ] + STAT_NAMES + [
+            "rating"
         ],
     )
 
-    game = Game(
+    game = GameManager(
         home_team=teams[0],
         away_team=teams[1],
     )
 
-    game.run()
+    game.run_game()
     print()
     print(players)
-    print()
-    game.print_score()
-    print()
-    print(game.boxscore.stats)

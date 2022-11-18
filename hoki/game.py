@@ -1,10 +1,16 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
 from enum import Enum, auto
 import random
 import time
 import pandas as pd
+import os
+import pprint
 
-from hoki.player import Player
+from hoki.pawn import Pawn
+
+
+SLEEP = 0  # seconds between game ticks
 
 
 class zone(Enum):
@@ -17,7 +23,7 @@ class zone(Enum):
 @dataclass
 class Puck:
     zone: zone = zone.OUT_OF_PLAY
-    player: Player = None
+    player: Pawn = None
 
 
 class GameEvents:
@@ -79,29 +85,56 @@ class BoxScore:
     def is_tied(self):
         return len(self.get_score()["goals"].unique()) == 1
 
+    def get_score_dict(self):
+        return self.get_score().to_dict()
+
+    def get_stats_dict(self):
+        return self.stats.to_dict()
+
     def __str__(self) -> str:
         return str(self.get_score())
 
 
-class Game:
+@dataclass
+class GameState:
+    boxscore: pd.DataFrame
+    players_positions: dict  # contains player position data
+    time: int  # the current game time
+    period: int  # the current period
+    puck: dict
+    paused: bool = True
+    overtime: bool = False
+    game_log: List[str] = field(default_factory=lambda: [])
+
+
+class GameManager:
     def __init__(self, home_team, away_team) -> None:
 
-        self.timer = 30
-        self.num_periods = 3
-        self.current_period = 1
-        self.posession_stack = []
+        self.teams_by_id = {
+            home_team.name: home_team,
+            away_team.name: away_team,
+        }
+        self.players_by_id = {player.id: player for team in self.teams_by_id.values() for player in team.players}
 
         self.home_team = home_team
         self.away_team = away_team
-
-        # TODO: both player_by_id and team_by_id are set in the _generate_lineups() function.
-        # it is not clear that this is happening
-        self.players_by_id = {}
-        self.teams_by_id = {}
-        self.lineups = self._generate_lineups()
+        self.boxscore = BoxScore(self.home_team, self.away_team)
 
         self.puck = Puck(zone=zone.OUT_OF_PLAY)
-        self.boxscore = BoxScore(self.home_team, self.away_team)
+        self.timer = 30
+        self.game_tick = 1
+        self.num_periods = 3
+        self.current_period = 1
+        # self.posession_stack = []
+        self.lineups = self._generate_lineups()
+
+        self.state = GameState(
+            boxscore=self.boxscore,
+            players_positions=self.lineups,
+            time=self.timer,
+            period=1,
+            puck={"zone": self.puck.zone, "player": self.puck.player},
+        )
 
     def get_player_team(self, player):
         return self.lineups.loc[self.lineups["player-id"] == player.id].team.unique()[0]
@@ -131,9 +164,7 @@ class Game:
         idx = 0
         data = {}
         for home, team in enumerate([self.away_team, self.home_team]):
-            self.teams_by_id[team.name] = team
-            for player in team.players:
-                self.players_by_id[player.id] = player
+            for player in team.players:            
                 data[idx] = [
                     home == 1,
                     team.name,
@@ -149,35 +180,40 @@ class Game:
             columns=["home", "team", "player-id", "player", "position", "on-ice"],
         )
 
-    def player_shoot(self, player, timer):
+    def log_event(self, text):
+        self.state.game_log.append(f"{self.state.period}:{self.state.time}: {text}")
+
+    def reset_puck(self):
+        self.puck.zone = zone.OUT_OF_PLAY
+        self.puck.player = None
+
+    def score_goal(self, player):
+        self.reset_puck()
+        pass
+
+    def player_shoot(self, player):
         chance = random.uniform(0, 1)
-        goal = False
         if chance < player.stats.accuracy:
+            self.score_goal(player)
             self.boxscore.add_shot(player, goal=True)
-            self.puck.zone = zone.OUT_OF_PLAY
-            self.puck.player = None
             action = "scored!"
-            goal = True
         else:
             self.boxscore.add_shot(player)
             self.puck.player = self.get_random_player(
                 team=self.teams_by_id[self.get_opponent_team(player)]
             )
             action = f"missed, now {self.puck.player.name} has the puck."
-        print(f"{self.current_period}:{timer}: {player.name} {action}")
-        return goal
+        self.log_event(f"{player.name} {action}")
 
-    def player_pass(self, player_a, player_b, timer):
+    def player_pass(self, player_a, player_b):
         chance = random.uniform(0, 1)
         if chance < (player_a.stats.accuracy + player_b.stats.positioning) / 2:
             self.puck.player = player_b
         else:
             self.puck.player = self.get_random_player()
-        print(
-            f"{self.current_period}:{timer}: {player_a.name} passed to {self.puck.player.name}"
-        )
+        self.log_event(f"{player_a.name} passed to {self.puck.player.name}")
 
-    def face_off(self, player_a, player_b, timer):
+    def face_off(self, player_a, player_b):
         diff = player_a.stats.strength - player_b.stats.strength
         chance = random.uniform(0, 1)
         if chance < 0.5 + diff:
@@ -187,40 +223,64 @@ class Game:
         self.puck.zone = zone.NEWTRAL
         self.boxscore.add_faceoff(player_a, won=player_a is self.puck.player)
         self.boxscore.add_faceoff(player_b, won=player_b is self.puck.player)
-        print(f"{self.current_period}:{timer}: faceoff won by {self.puck.player.name}")
+        self.log_event(f"faceoff won by {self.puck.player.name}")
 
-    def do_something(self, player, timer):
+    def do_something(self, player):
+        # TODO:
         team = self.teams_by_id[self.get_player_team(player)]
         option = random.randint(0, 1)
         if option == 0:
-            return self.player_shoot(player, timer)
+            return self.player_shoot(player)
         elif option == 1:
             player_b = team.players[random.randint(0, len(team.players) - 1)]
-            self.player_pass(player, player_b, timer)
+            self.player_pass(player, player_b)
 
-    def run_period(self, length, sleep=1, overtime=False):
-        while length > 0:
-            if self.puck.zone == zone.OUT_OF_PLAY:
-                self.face_off(
-                    self.home_team.players[-1], self.away_team.players[-1], length
-                )
-            else:
-                goal = self.do_something(self.puck.player, length)
-                if goal and overtime:
-                    return
-            length -= 1
-            time.sleep(sleep)
+    def is_tied(self) -> bool:
+        """ return True if the game is currently tied else Flase"""
+        return self.boxscore.is_tied()
 
-    def run(self):
-        for _ in range(self.num_periods):
-            self.run_period(self.timer, 0.25)
-            self.current_period += 1
-        overtimes = 1
-        while self.boxscore.is_tied():
-            print()
-            self.print_score()
-            print(f"Game is tied. running overtime period {overtimes}")
-            self.run_period(self.timer, 0.25, overtime=True)
+    def run_game(self):
+        over = False
+        while not over:
+            over = self.increment_state()
+
+    def increment_state(self) -> bool:
+        """
+        increment the game by 1 game_tick and return True if the game is over.
+        """
+        self.run_state()
+        self.display_state()
+        if self.state.time > 0:
+            if self.state.overtime and not self.is_tied():
+                return True
+            self.state.time -= self.game_tick
+        elif self.state.period < self.num_periods:
+            self.state.period += 1
+            self.state.time = self.timer
+        elif self.is_tied():
+            self.state.period += 1
+            self.state.time = self.timer
+            self.state.overtime = True
+        else:
+            return True
+
+    def run_state(self):
+        if self.puck.zone == zone.OUT_OF_PLAY:
+            self.face_off(
+                self.home_team.players[-1], self.away_team.players[-1]
+            )
+        else:
+            self.do_something(self.puck.player)
+        time.sleep(SLEEP)
+
+    def display_state(self):
+        os.system("clear")
+        print(self.state.boxscore.get_score())
+        print()
+        print(self.state.boxscore.stats)
+        print()
+        for l in self.state.game_log[-10:]:
+            print(l)
 
     def print_score(self):
         print(self.boxscore.get_score())
