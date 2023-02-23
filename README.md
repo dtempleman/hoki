@@ -1,7 +1,16 @@
 # hoki
 a simple hockey simulator.
 
+## development environment
+```
+pipenv install
+```
 
+## running the demo
+running the following command will generate a new set of players and teams, save them to a file and simulate a game between them.
+```
+pipenv run python scripts/run_sim.py
+```
 
 ## player stats
 stat | value | description |

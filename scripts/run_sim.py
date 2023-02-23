@@ -1,19 +1,30 @@
 import random
 import pandas as pd
+from pathlib import Path
+import xml.etree.ElementTree as ET
 
-from hoki.player import (
-    Player,
-    stick_hand,
+from hoki.pawn import (
+    Pawn,
+    dominant_hands,
     position,
     generate_player_name,
-    generate_inital_stats,
 )
-from hoki.team import Team, Jersey, generate_team_name
-from hoki.game_engine import Game
-from hoki import faker
+from hoki.statblock import generate_inital_stats, get_df_row, STAT_NAMES
+from hoki.team import Team, generate_team_name
+from hoki.game import GameManager
+from hoki.body import Body
+from hoki.save_manager import save_state_to_xml, xml_to_save_state
 
 
-if __name__ == "__main__":
+DATA_DIR = "data"
+DATA_FILE = "data.xml"
+
+
+def generate_teams(n_teams=2):
+    return [Team(name=generate_team_name()) for _ in range(n_teams)]
+
+
+def generate_players(teams):
     positions = [
         position.GOALIE,
         position.DEFENCE_L,
@@ -23,93 +34,81 @@ if __name__ == "__main__":
         position.CENTRE,
     ]
 
-    prim_1 = faker.color()
-    sec_1 = faker.color()
-    trim_1 = faker.color()
-    prim_2 = faker.color()
-    sec_2 = faker.color()
-    trim_2 = faker.color()
-
-    teams = [
-        Team(
-            name=generate_team_name(),
-            home_jersey=Jersey(
-                primary_colour=prim_1,
-                secondary_colour=sec_1,
-                trim_colour=trim_1,
-            ),
-            away_jersey=Jersey(
-                primary_colour=sec_1,
-                secondary_colour=prim_1,
-                trim_colour=trim_1,
-            ),
-        ),
-        Team(
-            name=generate_team_name(),
-            home_jersey=Jersey(
-                primary_colour=prim_2,
-                secondary_colour=sec_2,
-                trim_colour=trim_2,
-            ),
-            away_jersey=Jersey(
-                primary_colour=sec_2,
-                secondary_colour=prim_2,
-                trim_colour=trim_2,
-            ),
-        ),
-    ]
-
-    players = {}
+    players = []
     i = 0
     for t in teams:
         for p in positions:
-            t.players.append(
-                Player(
+            players.append(
+                Pawn(
                     name=generate_player_name(),
                     position=p,
                     id=i,
-                    shoots=stick_hand.LEFT
+                    shoots=dominant_hands.LEFT
                     if random.randint(0, 1) == 0
-                    else stick_hand.RIGHT,
+                    else dominant_hands.RIGHT,
                     stats=generate_inital_stats(),
                     jersey_num=random.randint(0, 99),
+                    body=Body(),
                 )
             )
-            players[i] = (
-                [
-                    t.name,
-                    t.players[-1].name,
-                    t.players[-1].position.name,
-                ]
-                + t.players[-1].stats.df_row()
-                + [t.players[-1].get_player_rating()]
+            t.players.append(
+                players[-1].id
             )
             i += 1
+    return players
 
-    players = pd.DataFrame.from_dict(
-        data=players,
+def generate_players_df(players):
+    data = {}
+    i = 0
+    for player in players:
+        data[i] = (
+            [
+                player.name,
+                player.position.name,
+            ]
+            + get_df_row(player.stats)
+            + [player.get_player_rating()]
+        )
+        i += 1
+
+    return pd.DataFrame.from_dict(
+        data=data,
         orient="index",
         columns=[
-            "team",
+            # "team",
             "name",
             "pos",
-            "positioning",
-            "accuracy",
-            "strength",
-            "iq",
-            "rating",
+        ] + STAT_NAMES + [
+            "rating"
         ],
     )
 
-    game = Game(
+
+if __name__ == "__main__":
+
+    data_file = Path(DATA_DIR, DATA_FILE)
+    if data_file.is_file():
+        print("Loading existing dataset")
+        annotation_tree = ET.parse(data_file)
+        root = annotation_tree.getroot()
+        players, teams = xml_to_save_state(root)
+
+    else:
+        print("Generating new dataset")
+        teams = generate_teams()
+        players = generate_players(teams)
+        root = save_state_to_xml(teams=teams, pawns=players)
+        ET.ElementTree(root).write(data_file)
+
+    players_df = generate_players_df(players)
+
+    game = GameManager(
         home_team=teams[0],
         away_team=teams[1],
+        pawns=players,
     )
 
-    game.run()
+    game.run_game()
+    game.print_game_summary()
     print()
-    print(players)
-    print()
-    game.print_score()
-    print()
-    print(game.boxscore.stats)
+    print(players_df)
