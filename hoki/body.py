@@ -13,6 +13,7 @@ class BodyPart:
     current: float = 1.0  # current health of body part
     maximum: float = 1.0  # the maximum health the part can be
 
+
 @dataclass
 class Body:
     head: BodyPart = BodyPart(name="head")

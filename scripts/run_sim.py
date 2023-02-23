@@ -51,11 +51,10 @@ def generate_players(teams):
                     body=Body(),
                 )
             )
-            t.players.append(
-                players[-1].id
-            )
+            t.players.append(players[-1].id)
             i += 1
     return players
+
 
 def generate_players_df(players):
     data = {}
@@ -78,9 +77,9 @@ def generate_players_df(players):
             # "team",
             "name",
             "pos",
-        ] + STAT_NAMES + [
-            "rating"
-        ],
+        ]
+        + STAT_NAMES
+        + ["rating"],
     )
 
 

@@ -5,7 +5,6 @@ import random
 import time
 import pandas as pd
 import os
-import pprint
 
 from hoki.pawn import Pawn
 
@@ -167,7 +166,7 @@ class GameManager:
         idx = 0
         data = {}
         for home, team in enumerate([self.away_team, self.home_team]):
-            for player_id in team.players:            
+            for player_id in team.players:
                 data[idx] = [
                     home == 1,
                     team.name,
@@ -240,7 +239,7 @@ class GameManager:
             self.player_pass(player, player_b)
 
     def is_tied(self) -> bool:
-        """ return True if the game is currently tied else Flase"""
+        """return True if the game is currently tied else Flase"""
         return self.boxscore.is_tied()
 
     def run_game(self):
@@ -271,7 +270,8 @@ class GameManager:
     def run_state(self):
         if self.puck.zone == zone.OUT_OF_PLAY:
             self.face_off(
-                self.players_by_id[self.home_team.players[-1]], self.players_by_id[self.away_team.players[-1]]
+                self.players_by_id[self.home_team.players[-1]],
+                self.players_by_id[self.away_team.players[-1]],
             )
         else:
             self.do_something(self.puck.player)
@@ -283,8 +283,8 @@ class GameManager:
         print()
         print(self.state.boxscore.stats)
         print()
-        for l in self.state.game_log[-10:]:
-            print(l)
+        for log in self.state.game_log[-10:]:
+            print(log)
 
     def print_score(self):
         print(self.boxscore.get_score())

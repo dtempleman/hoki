@@ -17,10 +17,7 @@ def team_to_xml(team: Team) -> ET.Element:
 
 
 def xml_to_team(element: ET.Element) -> Team:
-    return Team(
-        name=element.attrib["name"],
-        players=[p.text for p in element]
-    )
+    return Team(name=element.attrib["name"], players=[p.text for p in element])
 
 
 def teams_list_to_xml(teams: List[Team]) -> ET.Element:
@@ -72,7 +69,9 @@ def bodypart_to_xml(bodypart: BodyPart) -> ET.Element:
 
 
 def xml_to_bodypart(element: ET.Element) -> Body:
-    state = {state.attrib["name"]: float(state.text) for state in element.findall("state")}
+    state = {
+        state.attrib["name"]: float(state.text) for state in element.findall("state")
+    }
     return BodyPart(
         name=element.attrib["name"],
         current=state["current"],
@@ -92,7 +91,10 @@ def body_to_xml(body: Body) -> ET.Element:
 
 
 def xml_to_body(element: ET.Element) -> Body:
-    bodyparts = {part.attrib["name"]: xml_to_bodypart(part) for part in element.findall("bodypart")}
+    bodyparts = {
+        part.attrib["name"]: xml_to_bodypart(part)
+        for part in element.findall("bodypart")
+    }
     return Body(
         head=bodyparts["head"],
         torso=bodyparts["torso"],
