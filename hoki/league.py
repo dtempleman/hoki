@@ -98,9 +98,9 @@ class League:
     def print_standings(self):
         df = self.team_stats
         df["points"] = df["wins"] * 2 + df["overtime-losses"]
-        print(self.team_stats.sort_values(by=["points"], ascending=False))
+        print(df.sort_values(by=["points"], ascending=False))
 
     def print_stats(self):
-        stats = self.player_stats
-        stats["points"] = stats["goals"]
-        print(stats.sort_values(by=["points"], ascending=False))
+        df = self.player_stats
+        df["points"] = df["goals"] + df["assists"]
+        print(df.sort_values(by=["points"], ascending=False))

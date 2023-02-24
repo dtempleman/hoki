@@ -10,7 +10,7 @@ from hoki.pawn import Pawn
 
 
 SLEEP = 0  # seconds between game ticks
-STATS_NAMES = ["goals", "shots", "faceoffs", "faceoffs-won"]
+STATS_NAMES = ["goals", "assists", "shots", "faceoffs", "faceoffs-won"]
 
 
 class zone(Enum):
@@ -57,6 +57,9 @@ class BoxScore:
 
     def increment_stat(self, player, stat):
         self.stats.loc[self.stats["player-id"] == player.id, stat] += 1
+
+    def add_assist(self, player):
+        self.increment_stat(player, "assists")
 
     def add_shot(self, player, goal=False):
         self.increment_stat(player, "shots")
@@ -109,6 +112,30 @@ class GameState:
     game_log: List[str] = field(default_factory=lambda: [])
 
 
+class PossessionStack:
+    def __init__(self):
+        self.stack = []
+
+    def add_player(self, player):
+        # if the most recent player on the stack is on ther other team, reset stack
+        # add a player to the stack if they are not already at the top
+        if player:
+            current_player = self.stack[-1].name if len(self.stack) > 0 else None
+            if current_player is None or current_player != player.name:
+                self.stack.append(player)
+
+    def get_assist(self):
+        # return the player who assisted the goal, if no player return None
+        return self.stack[-2] if len(self.stack) > 1 else None
+
+    def print_stack(self):
+        for player in self.stack:
+            if player:
+                print(player.name)
+            else:
+                print(player)
+
+
 class GameManager:
     def __init__(self, home_team, away_team, pawns) -> None:
         self.teams_by_id = {
@@ -127,7 +154,7 @@ class GameManager:
         self.num_periods = 3
         self.current_period = 1
         self.completed = False
-        # self.posession_stack = []
+        self.posession_stack = PossessionStack()
         self.lineups = self._generate_lineups()
 
         self.state = GameState(
@@ -196,16 +223,18 @@ class GameManager:
     def player_shoot(self, player):
         chance = random.uniform(0, 1)
         if chance < player.stats.accuracy:
+            assister = self.posession_stack.get_assist()
+            if assister and self.get_player_team(assister) == self.get_player_team(
+                player
+            ):
+                self.boxscore.add_assist(assister)
             self.score_goal(player)
             self.boxscore.add_shot(player, goal=True)
-            # action = "scored!"
         else:
             self.boxscore.add_shot(player)
             self.puck.player = self.get_random_player(
                 team=self.teams_by_id[self.get_opponent_team(player)]
             )
-            # action = f"missed, now {self.puck.player.name} has the puck."
-        # self.log_event(f"{player.name} {action}")
 
     def player_pass(self, player_a, player_b):
         chance = random.uniform(0, 1)
@@ -213,7 +242,6 @@ class GameManager:
             self.puck.player = player_b
         else:
             self.puck.player = self.get_random_player()
-        # self.log_event(f"{player_a.name} passed to {self.puck.player.name}")
 
     def face_off(self, player_a, player_b):
         diff = player_a.stats.strength - player_b.stats.strength
@@ -225,7 +253,6 @@ class GameManager:
         self.puck.zone = zone.NEWTRAL
         self.boxscore.add_faceoff(player_a, won=player_a is self.puck.player)
         self.boxscore.add_faceoff(player_b, won=player_b is self.puck.player)
-        # self.log_event(f"faceoff won by {self.puck.player.name}")
 
     def do_something(self, player):
         # TODO:
@@ -251,7 +278,6 @@ class GameManager:
         increment the game by 1 game_tick and return True if the game is over.
         """
         self.run_state()
-        # self.display_state()
         if self.state.time > 0:
             if self.state.overtime and not self.is_tied():
                 return True
@@ -274,6 +300,8 @@ class GameManager:
             )
         else:
             self.do_something(self.puck.player)
+        self.posession_stack.add_player(self.puck.player)
+        # self.posession_stack.print_stack()
         time.sleep(SLEEP)
 
     def display_state(self):
