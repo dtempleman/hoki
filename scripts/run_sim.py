@@ -11,9 +11,9 @@ from hoki.pawn import (
 )
 from hoki.statblock import generate_inital_stats, get_df_row, STAT_NAMES
 from hoki.team import Team, generate_team_name
-from hoki.game import GameManager
 from hoki.body import Body
 from hoki.save_manager import save_state_to_xml, xml_to_save_state
+from hoki.league import League
 
 
 DATA_DIR = "data"
@@ -80,11 +80,10 @@ def generate_players_df(players):
         ]
         + STAT_NAMES
         + ["rating"],
-    )
+    ).set_index(["name"])
 
 
 if __name__ == "__main__":
-
     data_file = Path(DATA_DIR, DATA_FILE)
     if data_file.is_file():
         print("Loading existing dataset")
@@ -94,20 +93,18 @@ if __name__ == "__main__":
 
     else:
         print("Generating new dataset")
-        teams = generate_teams()
+        teams = generate_teams(n_teams=12)
         players = generate_players(teams)
         root = save_state_to_xml(teams=teams, pawns=players)
         ET.ElementTree(root).write(data_file)
 
     players_df = generate_players_df(players)
-
-    game = GameManager(
-        home_team=teams[0],
-        away_team=teams[1],
-        pawns=players,
-    )
-
-    game.run_game()
-    game.print_game_summary()
-    print()
     print(players_df)
+
+    league = League(teams=teams, players=players)
+    league.run_season()
+    league.player_stats.to_csv(f"data/season_{league.year}_player_stats.csv")
+    league.team_stats.to_csv(f"data/season_{league.year}_team_stats.csv")
+
+    league.print_standings()
+    league.print_stats()

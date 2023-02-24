@@ -10,6 +10,7 @@ from hoki.pawn import Pawn
 
 
 SLEEP = 0  # seconds between game ticks
+STATS_NAMES = ["goals", "shots", "faceoffs", "faceoffs-won"]
 
 
 class zone(Enum):
@@ -40,7 +41,6 @@ class BoxScore:
     def __init__(self, home, away, players_by_id) -> None:
         idx = 0
         data = {}
-        stats_names = ["goals", "shots", "faceoffs", "faceoffs-won"]
         for team in [home, away]:
             for player_id in team.players:
                 data[idx] = [
@@ -48,11 +48,11 @@ class BoxScore:
                     players_by_id[player_id].id,
                     players_by_id[player_id].name,
                 ]
-                for _ in stats_names:
+                for _ in STATS_NAMES:
                     data[idx].append(0)
                 idx += 1
         self.stats = pd.DataFrame.from_dict(
-            data, orient="index", columns=["team", "player-id", "player"] + stats_names
+            data, orient="index", columns=["team", "player-id", "player"] + STATS_NAMES
         )
 
     def increment_stat(self, player, stat):
@@ -111,7 +111,6 @@ class GameState:
 
 class GameManager:
     def __init__(self, home_team, away_team, pawns) -> None:
-
         self.teams_by_id = {
             home_team.name: home_team,
             away_team.name: away_team,
@@ -127,6 +126,7 @@ class GameManager:
         self.game_tick = 1
         self.num_periods = 3
         self.current_period = 1
+        self.completed = False
         # self.posession_stack = []
         self.lineups = self._generate_lineups()
 
@@ -242,10 +242,9 @@ class GameManager:
         """return True if the game is currently tied else Flase"""
         return self.boxscore.is_tied()
 
-    def run_game(self):
-        over = False
-        while not over:
-            over = self.increment_state()
+    def run(self):
+        while not self.completed:
+            self.completed = self.increment_state()
 
     def increment_state(self) -> bool:
         """

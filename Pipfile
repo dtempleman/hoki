@@ -11,6 +11,7 @@ black = "*"
 bumpversion = "*"
 django = "*"
 django-debug-toolbar = "*"
+tqdm = "*"
 
 [dev-packages]
 
