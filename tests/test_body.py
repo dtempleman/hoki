@@ -17,3 +17,7 @@ def test_damage_body_part():
     assert body_part.maximum == 1
     damage_bodypart(body_part, 0.5)
     assert body_part.current == 0.5
+    damage_bodypart(body_part, 0.5)
+    assert body_part.current == 0.0
+    damage_bodypart(body_part, 0.5)
+    assert body_part.current == 0.0

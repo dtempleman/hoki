@@ -4,7 +4,6 @@ from enum import Enum, auto
 import random
 import time
 import pandas as pd
-import os
 
 from hoki.pawn import Pawn
 
@@ -24,17 +23,6 @@ class zone(Enum):
 class Puck:
     zone: zone = zone.OUT_OF_PLAY
     player: Pawn = None
-
-
-class GameEvents:
-    def __init__(self, home, away) -> None:
-        pass
-
-    def add_event(self):
-        pass
-
-    def print_event(self):
-        pass
 
 
 class BoxScore:
@@ -136,10 +124,7 @@ class PossessionStack:
 
     def print_stack(self):
         for player in self.stack:
-            if player:
-                print(player.name)
-            else:
-                print(player)
+            print(player.name)
 
 
 class GameManager:
@@ -181,12 +166,6 @@ class GameManager:
         return self.lineups.loc[
             self.lineups["team"] != self.get_player_team(player)
         ].team.unique()[0]
-
-    def get_home_team(self):
-        return self.lineups.loc[self.lineups["home"] is True]
-
-    def get_away_team(self):
-        return self.lineups.loc[self.lineups["home"] is False]
 
     def get_random_player(self, team=None):
         if team:
@@ -309,20 +288,3 @@ class GameManager:
         self.posession_stack.add_player(self.puck.player)
         # self.posession_stack.print_stack()
         time.sleep(SLEEP)
-
-    def display_state(self):
-        os.system("clear")
-        print(self.state.boxscore.get_score())
-        print()
-        print(self.state.boxscore.stats)
-        print()
-        for log in self.state.game_log[-10:]:
-            print(log)
-
-    def print_score(self):
-        print(self.boxscore.get_score())
-
-    def print_game_summary(self):
-        self.print_score()
-        print()
-        print(self.state.boxscore.get_stats())

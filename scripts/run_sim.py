@@ -2,6 +2,7 @@ import random
 import pandas as pd
 from pathlib import Path
 import xml.etree.ElementTree as ET
+import os
 
 from hoki.pawn import (
     Pawn,
@@ -74,13 +75,45 @@ def generate_players_df(players):
         data=data,
         orient="index",
         columns=[
-            # "team",
+            "team",
             "name",
             "pos",
         ]
         + STAT_NAMES
         + ["rating"],
     ).set_index(["name"])
+
+
+def display_state(game):
+    os.system("clear")
+    print(game.state.boxscore.get_score())
+    print()
+    print(game.state.boxscore.stats)
+    print()
+    for log in game.state.game_log[-10:]:
+        print(log)
+
+
+def print_score(game):
+    print(game.boxscore.get_score())
+
+
+def print_game_summary(game):
+    game.print_score()
+    print()
+    print(game.state.boxscore.get_stats())
+
+
+def print_standings(league):
+    df = league.team_stats
+    df["points"] = df["wins"] * 2 + df["overtime-losses"]
+    print(df.sort_values(by=["points"], ascending=False))
+
+
+def print_stats(league):
+    df = league.player_stats
+    df["points"] = df["goals"] + df["assists"]
+    print(df.sort_values(by=["points"], ascending=False))
 
 
 if __name__ == "__main__":
@@ -106,5 +139,5 @@ if __name__ == "__main__":
     league.player_stats.to_csv(f"data/season_{league.year}_player_stats.csv")
     league.team_stats.to_csv(f"data/season_{league.year}_team_stats.csv")
 
-    league.print_standings()
-    league.print_stats()
+    print_standings(league)
+    print_stats(league)

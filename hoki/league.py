@@ -94,13 +94,3 @@ class League:
         for team in self.teams:
             team_stats.loc[len(team_stats)] = [team.name] + [0 for _ in stats_headers]
         return team_stats.set_index(["team"])
-
-    def print_standings(self):
-        df = self.team_stats
-        df["points"] = df["wins"] * 2 + df["overtime-losses"]
-        print(df.sort_values(by=["points"], ascending=False))
-
-    def print_stats(self):
-        df = self.player_stats
-        df["points"] = df["goals"] + df["assists"]
-        print(df.sort_values(by=["points"], ascending=False))

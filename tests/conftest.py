@@ -5,6 +5,7 @@ from hoki.team import Team, generate_team_name
 from hoki.pawn import Pawn, dominant_hands, position, generate_player_name
 from hoki.body import Body
 from hoki.statblock import generate_inital_stats
+from hoki.game import GameManager
 
 
 @pytest.fixture()
@@ -78,4 +79,14 @@ def fill_teams_with_pawns():
                 t.players.append(players[-1].id)
                 i += 1
         return players
+    return func
+
+
+@pytest.fixture()
+def create_game(create_teams, fill_teams_with_pawns):
+    def func():
+        teams = create_teams(2)
+        players = fill_teams_with_pawns(teams)
+        game = GameManager(teams[0], teams[1], pawns=players)
+        return game, teams, players
     return func
