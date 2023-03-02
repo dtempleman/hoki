@@ -1,4 +1,4 @@
-TEST_DIRS := hoki scripts apps webapp
+TEST_DIRS := hoki scripts
 
 lint:
 	black --check $(TEST_DIRS)

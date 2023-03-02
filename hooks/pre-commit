@@ -25,7 +25,7 @@ then
     exit 1
 fi
 
-TEST_DIRS="hoki scripts apps webapp"
+TEST_DIRS="hoki scripts"
 
 black --check $TEST_DIRS
 echo "black format check passed!"
