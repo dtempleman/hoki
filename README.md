@@ -1,21 +1,29 @@
 # hoki
-a simple hockey simulator.
+A simple hockey simulator inspired by [blaseball](https://www.blaseball.com/).
+## Development environment
+### Dependancies
+```sh
+docker compose build
+```
+```sh
+cp hooks/* .git/hooks/
+```
+The git pre-commit hook requires both 'black' and 'flake8' to be installed.
 
-## development environment
+```sh
+sudo apt install black
 ```
-pipenv install
+```sh
+sudo apt install flake8
 ```
-
-## running the demo
-running the following command will generate a new set of players and teams, save them to a file and simulate a game between them.
+### Running tests
+```sh
+make coverage
 ```
-pipenv run python scripts/run_sim.py
+## Running the demo
+Running the following script will:
+1. generate a league of teams
+1. run a single season
+```sh
+docker compose run app python scripts/run_sim.py
 ```
-
-## player stats
-stat | value | description |
---- | --- | --- |
-positioning | {0.0, 1.0} | represents the player's ability to be in the right place at the right time. |
-accuracy | {0.0, 1.0} | represents the player's shot and pass accuracy. |
-strength | {0.0, 1.0} | represents the player's shot power, ability to give and take hits, and win faceoffs. |
-iq | {0.0, 1.0} | represents the player's ability to make the correct desicion in the moment.
