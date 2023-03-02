@@ -1,5 +1,8 @@
+TEST_DIRS := hoki scripts apps webapp
+
 lint:
-	./utils/lint.sh
+	black --check $(TEST_DIRS)
+	flake8 $(TEST_DIRS)
 
 coverage:
 	coverage erase
