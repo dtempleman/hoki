@@ -3,5 +3,32 @@
 # If any command fails, exit immediately with that command's exit status
 set -eo pipefail
 
-pipenv run ./utils/test.sh
-echo "Test passed!"
+if ! command -v black &> /dev/null || ! command -v flake8 &> /dev/null
+then
+    echo "git pre-commit hook requires both 'black' and 'flake8' to be installed."
+    if ! command -v black &> /dev/null
+    then
+        echo
+        echo "    Command 'black' not found, but can be installed with:"
+        echo "        sudo apt install black"
+        echo
+    fi
+
+    if ! command -v flake8 &> /dev/null
+    then
+        echo
+        echo "    Command 'flake8' not found, but can be installed with:"
+        echo "        sudo apt install flake8"
+        echo
+    fi
+
+    exit 1
+fi
+
+TEST_DIRS="hoki scripts apps webapp"
+
+black --check $TEST_DIRS
+echo "black format check passed!"
+flake8 $TEST_DIRS
+echo "flake8 lint check passed!"
+echo

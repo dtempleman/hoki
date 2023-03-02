@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from hoki.pawn import Pawn
 from hoki import faker
 
 
@@ -15,15 +14,6 @@ class Team:
         for p in self.players:
             string += f"{p}\n"
         return string
-
-
-@dataclass
-class Contract:
-    player: Pawn
-    team: Team
-    starting_year: str
-    length: int
-    aav: float
 
 
 def generate_team_name():

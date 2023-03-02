@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import List
 import random
 
@@ -32,16 +32,7 @@ class StatBlock:
 
 
 def get_df_row(stats: StatBlock) -> List:
-    return [
-        stats.positioning,
-        stats.accuracy,
-        stats.strength,
-        stats.iq,
-        stats.health,
-        stats.stability,
-        stats.speed,
-        stats.aggresivness,
-    ]
+    return [getattr(stats, field.name) for field in fields(stats)]
 
 
 def generate_inital_stats():

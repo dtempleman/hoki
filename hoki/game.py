@@ -126,7 +126,13 @@ class PossessionStack:
 
     def get_assist(self):
         # return the player who assisted the goal, if no player return None
-        return self.stack[-2] if len(self.stack) > 1 else None
+        return self.stack[-2] if self.size() > 1 else None
+
+    def reset(self):
+        self.stack = []
+
+    def size(self):
+        return len(self.stack)
 
     def print_stack(self):
         for player in self.stack:

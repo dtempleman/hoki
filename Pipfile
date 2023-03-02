@@ -12,6 +12,8 @@ bumpversion = "*"
 django = "*"
 django-debug-toolbar = "*"
 tqdm = "*"
+pytest = "*"
+coverage = "*"
 
 [dev-packages]
 

@@ -25,7 +25,7 @@ class Body:
 
 
 def damage_bodypart(body_part, force):
-    if force > body_part.state:
-        body_part.state = 0
+    if force > body_part.current:
+        body_part.current = 0
     else:
-        body_part.state -= force
+        body_part.current -= force
