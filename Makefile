@@ -11,4 +11,4 @@ coverage:
 	coverage html --fail-under=60
 
 sim:
-	docker compose run app python scripts/run_sim.py
+	docker compose run --rm app python scripts/run_sim.py
