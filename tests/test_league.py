@@ -1,7 +1,7 @@
 from hoki.league import League, Season
 
 
-def test_league_run_season(create_game, fill_teams_with_pawns):
+def test_league_run_season(create_game):
     game, teams, players = create_game()
     league = League(teams=teams, players=players)
     assert league.year == 0
@@ -9,7 +9,7 @@ def test_league_run_season(create_game, fill_teams_with_pawns):
     game.state.period = 3
     game.state.time = 0
     game.increment_state()
-    game.run()
+    game = league.run_game(game)
     league._apply_game_stats(game)
     league.run_season()
     assert league.year == 1

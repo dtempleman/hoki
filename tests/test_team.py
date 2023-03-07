@@ -1,7 +1,5 @@
 from hoki.team import Team, generate_team_name
 
-import pytest
-
 
 def test_team(create_player):
     team = Team(

@@ -2,6 +2,7 @@ from typing import List
 import itertools
 import random
 import pandas as pd
+from multiprocessing import Pool
 
 from hoki.team import Team
 from hoki.pawn import Pawn
@@ -69,25 +70,32 @@ class League:
         """
         Create a manager for each game and then run every game in a season. Once complete increment the leagues year.
 
-        TODO: this each be done in their own thread to spead up seasons.
+        Args:
+            multi (bool): if True run all the games wth multiprocessing, else run them sequentially. Default = True.
         """
         games = [
             GameManager(teams[0], teams[1], self.players)
             for teams in self.seasons[self.year].schedule
         ]
-        for game in games:
-            self.run_game(game)
+
+        with Pool() as pool:
+            results = pool.map(self.run_game, games)
+
+        for game in results:
+            self._apply_game_stats(game)
         self.year += 1
 
-    def run_game(self, game: GameManager) -> None:
+    def run_game(self, game: GameManager) -> GameManager:
         """
-        Run a game and save the stats.
+        Run and return a game.
 
         Args:
             game (GameManager): the game to run.
+        Returns:
+            the completed gamemanager object.
         """
         game.run()
-        self._apply_game_stats(game)
+        return game
 
     def _apply_player_stats(self, game: GameManager) -> None:
         """
