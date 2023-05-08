@@ -1,11 +1,10 @@
+import xml.etree.ElementTree as ET
 from typing import List
 
-import xml.etree.ElementTree as ET
-
-from hoki.team import Team
-from hoki.pawn import Pawn, position, dominant_hands
 from hoki.body import Body, BodyPart
+from hoki.pawn import Pawn, dominant_hands, position
 from hoki.statblock import StatBlock
+from hoki.team import Team
 
 
 def team_to_xml(team: Team) -> ET.Element:
@@ -75,12 +74,20 @@ def statblock_to_xml(statblock: StatBlock) -> ET.Element:
     element = ET.Element("statblock")
     pos = ET.SubElement(element, "stat", dict(name="positioning"))
     pos.text = str(statblock.positioning)
-    acc = ET.SubElement(element, "stat", dict(name="accuracy"))
-    acc.text = str(statblock.accuracy)
-    acc = ET.SubElement(element, "stat", dict(name="strength"))
-    acc.text = str(statblock.strength)
-    acc = ET.SubElement(element, "stat", dict(name="iq"))
-    acc.text = str(statblock.iq)
+    pos = ET.SubElement(element, "stat", dict(name="iq"))
+    pos.text = str(statblock.iq)
+    pos = ET.SubElement(element, "stat", dict(name="shooting"))
+    pos.text = str(statblock.shooting)
+    pos = ET.SubElement(element, "stat", dict(name="passing"))
+    pos.text = str(statblock.passing)
+    pos = ET.SubElement(element, "stat", dict(name="save"))
+    pos.text = str(statblock.save)
+    pos = ET.SubElement(element, "stat", dict(name="skate"))
+    pos.text = str(statblock.skate)
+    pos = ET.SubElement(element, "stat", dict(name="checking"))
+    pos.text = str(statblock.checking)
+    pos = ET.SubElement(element, "stat", dict(name="stable"))
+    pos.text = str(statblock.stable)
     return element
 
 
@@ -96,13 +103,13 @@ def xml_to_statblock(element: ET.Element) -> StatBlock:
     stats = {stat.attrib["name"]: float(stat.text) for stat in element.findall("stat")}
     return StatBlock(
         positioning=stats["positioning"],
-        accuracy=stats["accuracy"],
-        strength=stats["strength"],
         iq=stats["iq"],
-        health=1.0,
-        stability=1.0,
-        speed=1.0,
-        aggresivness=1.0,
+        shooting=stats["shooting"],
+        passing=stats["passing"],
+        save=stats["save"],
+        skate=stats["skate"],
+        checking=stats["checking"],
+        stable=stats["stable"],
         shooting_hand=1.0,
     )
 

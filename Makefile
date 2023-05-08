@@ -12,3 +12,6 @@ coverage:
 
 sim:
 	docker compose run --rm app python scripts/run_sim.py
+
+game:
+	docker compose run --rm app python scripts/sim_game.py

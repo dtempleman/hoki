@@ -1,24 +1,19 @@
-import random
-import pandas as pd
-from pathlib import Path
-import xml.etree.ElementTree as ET
+import argparse
 import os
+import random
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from multiprocessing import Pool
-import argparse
+from pathlib import Path
 
-from hoki.pawn import (
-    Pawn,
-    dominant_hands,
-    position,
-    generate_player_name,
-)
-from hoki.statblock import generate_inital_stats, get_df_row, STAT_NAMES
-from hoki.team import Team, generate_team_name
+import pandas as pd
+
 from hoki.body import Body
-from hoki.save_manager import save_state_to_xml, xml_to_save_state
 from hoki.league import League
-
+from hoki.pawn import Pawn, dominant_hands, generate_player_name, position
+from hoki.save_manager import save_state_to_xml, xml_to_save_state
+from hoki.statblock import STAT_NAMES, generate_inital_stats, get_df_row
+from hoki.team import Team, generate_team_name
 
 DATA_DIR = "data"
 DATA_FILE = "data.xml"
@@ -39,7 +34,7 @@ def generate_team(name):
 
 def generate_teams(n_teams=2):
     with Pool() as pool:
-        teams = pool.map_async(
+        teams = pool.map(
             generate_team, [(generate_team_name()) for _ in range(n_teams)]
         )
     return teams
@@ -49,7 +44,7 @@ def generate_player(pos, id):
     return Pawn(
         name=generate_player_name(),
         position=pos,
-        id=id,
+        id=f"p{id}",
         shoots=dominant_hands.LEFT
         if random.randint(0, 1) == 0
         else dominant_hands.RIGHT,
@@ -66,7 +61,7 @@ def generate_team_players(offset):
             Pawn(
                 name=generate_player_name(),
                 position=pos,
-                id=i + offset,
+                id=f"p{i + offset}",
                 shoots=dominant_hands.LEFT
                 if random.randint(0, 1) == 0
                 else dominant_hands.RIGHT,
@@ -81,7 +76,7 @@ def generate_team_players(offset):
 def generate_players(teams):
     all_players = []
     with Pool() as pool:
-        team_players = pool.map_async(
+        team_players = pool.map(
             generate_team_players, [(i * len(POSITIONS)) for i in range(len(teams))]
         )
     for i, players in enumerate(team_players):
@@ -154,14 +149,14 @@ if __name__ == "__main__":
         description="Run a league season simulation with n teams."
     )
     parser.add_argument(
-        "--n_teams",
+        "--n-teams",
         "-t",
         help="The number of team in the simulation",
         type=int,
         default=32,
     )
     parser.add_argument(
-        "--force_gen",
+        "--force-gen",
         "-f",
         help="Force the sim to generate a new dataset of teams",
         action="store_true",

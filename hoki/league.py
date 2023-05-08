@@ -1,12 +1,13 @@
-from typing import List
 import itertools
 import random
-import pandas as pd
 from multiprocessing import Pool
+from typing import List
 
-from hoki.team import Team
+import pandas as pd
+
+from hoki.game import STATS_NAMES, GameManager
 from hoki.pawn import Pawn
-from hoki.game import GameManager, STATS_NAMES
+from hoki.team import Team
 
 
 class Season:
@@ -49,6 +50,7 @@ class League:
         self.year = 0
         self.teams = teams
         self.players = players
+        self.players_by_team = self._generate_players_by_team()
 
         # dataframes that contains team and player stats, this will be updated after every game
         player_stats_headers = ["games"] + STATS_NAMES
@@ -59,6 +61,15 @@ class League:
         # a list of seasons for a given league
         self.seasons = []
         self.add_season_schedule()
+
+    def _generate_players_by_team(self):
+        players_by_team = {}
+        for t in self.teams:
+            players_by_team[t.name] = []
+            for p in self.players:
+                if p.id in t.players:
+                    players_by_team[t.name].append(p)
+        return players_by_team
 
     def add_season_schedule(self) -> None:
         """
@@ -74,7 +85,12 @@ class League:
             multi (bool): if True run all the games wth multiprocessing, else run them sequentially. Default = True.
         """
         games = [
-            GameManager(teams[0], teams[1], self.players)
+            GameManager(
+                teams[0],
+                teams[1],
+                self.players_by_team[teams[0].name]
+                + self.players_by_team[teams[1].name],
+            )
             for teams in self.seasons[self.year].schedule
         ]
 
