@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
 
 import pandas as pd
 
@@ -32,3 +33,5 @@ class GameState:
     period: int
     # if the game is currently in overtime
     overtime: bool = False
+
+    game_log: List[str] = field(default_factory=lambda: [])

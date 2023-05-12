@@ -1,6 +1,6 @@
 import random
 from enum import Enum, auto
-from typing import Union
+from typing import List, Union
 
 from hoki.game_state import GameState
 from hoki.pawn import position
@@ -19,37 +19,53 @@ class PlayerManager:
         self.players = players_by_id
         self.ice_map = ice_map
 
-    def get_players_by_positions(
-        self, game_state, positions=[], player_id=None, oppenent=False
+    def get_players_opponant_by_position(
+        self, game_state: GameState, player_id: str, positions: List[int] = []
     ):
         players = list(self.players.keys())
-        if player_id is not None:
-            if oppenent:
-                team_player_ids = game_state.players_by_team[
-                    game_state.team_by_player[player_id]
-                ]
-                players = list(set(players) - set(team_player_ids))
-            else:
-                players = [
-                    p
-                    for p in game_state.players_by_team[
-                        game_state.team_by_player[player_id]
-                    ]
-                ]
-                players.remove(player_id)
+        team_player_ids = game_state.players_by_team[
+            game_state.team_by_player[player_id]
+        ]
+        players = list(set(players) - set(team_player_ids))
         if positions is not None and len(positions) > 0:
             players = [
                 pid for pid in players if self.players[pid].position in positions
             ]
         return players
 
-    def face_off(self, game_state):
+    def get_players_teammate_by_position(
+        self, game_state: GameState, player_id: str, positions: List[int] = []
+    ):
+        players = list(self.players.keys())
+        if player_id is not None:
+            players = [
+                p
+                for p in game_state.players_by_team[
+                    game_state.team_by_player[player_id]
+                ]
+            ]
+            players.remove(player_id)
+        if positions is not None and len(positions) > 0:
+            players = [
+                pid for pid in players if self.players[pid].position in positions
+            ]
+        return players
+
+    def get_all_players_by_positions(self, positions: List = []):
+        players = list(self.players.keys())
+        if positions is not None and len(positions) > 0:
+            players = [
+                pid for pid in players if self.players[pid].position in positions
+            ]
+        return players
+
+    def face_off(self, game_state: GameState):
         # calculate winner a faceoff between the 2 centres
-        players = self.get_players_by_positions(game_state, [position.CENTRE])
+        players = self.get_all_players_by_positions([position.CENTRE])
         idx = random.randint(0, 1)
         return players[idx], players[(idx + 1) % 2]
 
-    def get_loose_puck(self, game_state):
+    def get_loose_puck(self, game_state: GameState):
         # for each player in puck zone calculate who gets the puck
         pass
 
@@ -105,7 +121,7 @@ class PlayerManager:
         self, player_id: int, game_state: GameState
     ) -> Union[float, int]:
         # return chance and player id of receiver
-        players = self.get_players_by_positions(game_state, [], player_id)
+        players = self.get_players_teammate_by_position(game_state, player_id)
         return 1.0, players[random.randint(0, len(players) - 1)]
 
     def player_action_shoot(
@@ -116,8 +132,8 @@ class PlayerManager:
         # print(f"player {shooter_id} shoots!")
 
         # Calculate the results of a shot.
-        goalie_id = self.get_players_by_positions(
-            game_state, [position.GOALIE], shooter_id, oppenent=True
+        goalie_id = self.get_players_opponant_by_position(
+            game_state, shooter_id, [position.GOALIE]
         )[0]
 
         shot_path = self.ice_map.shot_paths[game_state.zone_by_player[shooter_id]][

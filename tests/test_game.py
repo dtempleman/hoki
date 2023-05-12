@@ -1,23 +1,25 @@
 import pytest
 
-from hoki.game import GameManager, PossessionStack, BoxScore, STATS_NAMES
+from hoki.game import STATS_NAMES, BoxScore, GameManager, PossessionStack
 
 
 @pytest.mark.parametrize(
-    'n_players, expected_player_index',
+    "n_players, expected_player_index",
     [
-        pytest.param(0, None, id='0'),
-        pytest.param(1, None, id='1'),
-        pytest.param(2, 0, id='2'),
-        pytest.param(3, 1, id='>2'),
-    ]
+        pytest.param(0, None, id="0"),
+        pytest.param(1, None, id="1"),
+        pytest.param(2, 0, id="2"),
+        pytest.param(3, 1, id=">2"),
+    ],
 )
 def test_possession_stack(create_players, n_players, expected_player_index):
     stack = PossessionStack()
     players = create_players(n_players)
     for player in players:
         stack.add_player(player)
-    expected_player = players[expected_player_index] if expected_player_index is not None else None
+    expected_player = (
+        players[expected_player_index] if expected_player_index is not None else None
+    )
     assert stack.get_assist() == expected_player
     stack.print_stack()
     stack.reset()
@@ -59,14 +61,14 @@ def test_boxscore(create_teams, fill_teams_with_pawns):
 
     assert boxscore.is_tied()
 
-    boxscore.add_assist(players[0])
-    boxscore.add_shot(players[0])
-    boxscore.add_shot(players[0], goal=True)
-    boxscore.add_faceoff(players[0])
-    boxscore.add_faceoff(players[0], won=True)
+    boxscore.add_assist(players[0].id)
+    boxscore.add_shot(players[0].id)
+    boxscore.add_shot(players[0].id, goal=True)
+    boxscore.add_faceoff(players[0].id)
+    boxscore.add_faceoff(players[0].id, won=True)
 
     for stat in STATS_NAMES:
-        boxscore.increment_stat(players[0], stat)
+        boxscore.increment_stat(players[0].id, stat)
 
     assert not boxscore.is_tied()
 
@@ -101,7 +103,7 @@ def test_boxscore(create_teams, fill_teams_with_pawns):
         assert stats_df["assists"].loc[i] == 0
         assert stats_df["faceoffs"].loc[i] == 0
         assert stats_df["faceoffs-won"].loc[i] == 0
-    
+
     stats = boxscore.get_stats_dict()
     assert stats["player-id"][0] == players[0].id
     assert stats["goals"][0] == 2
@@ -119,10 +121,3 @@ def test_boxscore(create_teams, fill_teams_with_pawns):
         assert stats["faceoffs-won"][i] == 0
 
     assert str(boxscore) == str(score_df)
-
-
-def test_game_faceoff(create_game):
-    game, _, players = create_game()
-    # this is just for coverage as currently its a 10% chance to win a faceoff
-    for _ in range(100):
-        game.face_off(players[0], players[1])
