@@ -4,11 +4,31 @@ version: '2.4'
 volumes:
   postgres_data:
 
+
 services:
-  app:
+  api:
     build:
       context: .
-      dockerfile: Dockerfile
-    working_dir: /app
+      dockerfile: compose/Dockerfile
+    working_dir: /hoki/api
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - .:/app
+      - .:/hoki
+    ports:
+      - 8000:8000
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
