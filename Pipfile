@@ -12,6 +12,9 @@ bumpversion = "*"
 tqdm = "*"
 pytest = "*"
 coverage = "*"
+psycopg2-binary = "*"
+django = "*"
+django-rest-framework = "*"
 
 [dev-packages]
 
