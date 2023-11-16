@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED 1
 
 
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/9995b721327eac7a88f0dce314ea074d5169634f/wait-for-it.sh > /wait-for-it.sh
-ADD compose/entrypoint.sh /entrypoint.sh
+ADD compose/api/entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh && \
     chmod a+x /wait-for-it.sh
 
@@ -21,13 +21,8 @@ ENV PIPENV_VERBOSITY=-1
 RUN pip install pipenv
 RUN pipenv sync --dev
 
-# create root directory for our project in the container
-RUN mkdir /hoki
+ADD . /app/api/
 
-# Set the working directory to /music_service
-WORKDIR /hoki
-
-# Copy the current directory contents into the container at /music_service
-ADD . /hoki/
+WORKDIR /app/api
 
 ENTRYPOINT ["/entrypoint.sh"]

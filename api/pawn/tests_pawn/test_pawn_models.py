@@ -3,7 +3,7 @@ from pawn.models import Pawn, PawnBody
 
 
 # Create your tests here.
-class ModelTests(TestCase):
+class PawnModelTests(TestCase):
     def create_pawn(self):
         return Pawn.objects.create(
             first_name="first",

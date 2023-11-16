@@ -6,11 +6,16 @@ volumes:
 
 
 services:
+  hoki:
+    build:
+      context: .
+      dockerfile: compose/hoki/Dockerfile
+    # command: [ "python", "scripts/sim_game.py" ]
+    command: [ "make", "coverage" ]
   api:
     build:
       context: .
-      dockerfile: compose/Dockerfile
-    working_dir: /hoki/api
+      dockerfile: compose/api/Dockerfile
     environment:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
@@ -21,7 +26,7 @@ services:
       DJANGO_SUPERUSER_PASSWORD: admin
       DJANGO_SUPERUSER_EMAIL: admin@info.com
     volumes:
-      - .:/hoki
+      - ./api:/app/api
     ports:
       - 8000:8000
   db:

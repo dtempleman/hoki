@@ -15,6 +15,7 @@ coverage = "*"
 psycopg2-binary = "*"
 django = "*"
 django-rest-framework = "*"
+django-colorfield = "*"
 
 [dev-packages]
 

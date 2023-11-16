@@ -13,7 +13,7 @@ def decode_response_content(resp):
     return ast.literal_eval(resp.content.decode("UTF-8"))
 
 
-class ViewTests(TestCase):
+class PawnViewTests(TestCase):
     def add_pawn(self):
         pawn = Pawn.objects.create(
             first_name="first",

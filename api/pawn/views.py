@@ -10,8 +10,8 @@ from .serializers import PawnBodySerializer, PawnSerializer
 # Pawn views
 @api_view(["GET"])
 def list_pawns(request):
-    pawn = Pawn.objects.all()
-    serializer = PawnSerializer(pawn, many=True)
+    pawns = Pawn.objects.all()
+    serializer = PawnSerializer(pawns, many=True)
     return Response(serializer.data)
 
 

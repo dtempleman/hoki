@@ -16,5 +16,6 @@ class Command(createsuperuser.Command):
         )
         if exists:
             self.stdout.write(f"User {username} already exists, exiting normally.")
+            return
 
         super(Command, self).handle(*args, **options)

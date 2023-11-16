@@ -1,6 +1,5 @@
+from pawn.models import Pawn, PawnBody
 from rest_framework import serializers
-
-from .models import Pawn, PawnBody
 
 
 class PawnSerializer(serializers.ModelSerializer):
