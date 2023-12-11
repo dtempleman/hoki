@@ -10,6 +10,8 @@ services:
     build:
       context: .
       dockerfile: compose/hoki/Dockerfile
+    volumes:
+      - .:/app/hoki
     # command: [ "python", "scripts/sim_game.py" ]
     command: [ "make", "coverage" ]
   api:
