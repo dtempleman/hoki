@@ -27,3 +27,9 @@ Running the following script will:
 ```sh
 docker compose run app python scripts/run_sim.py
 ```
+
+## known bugs
+- currently when generating a league of teams, some name are repeated. there is probably a seed that is being reset somewhere.
+
+## comments
+- [ ] the management directory for the  `createinitialsuperuser` command is placed in the `pawn` app as there is only one app at the moment. im not sure if this is best practice for the commands as its not anything to do with the pawn apis. 

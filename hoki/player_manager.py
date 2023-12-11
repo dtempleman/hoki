@@ -67,7 +67,11 @@ class PlayerManager:
 
     def get_loose_puck(self, game_state: GameState):
         # for each player in puck zone calculate who gets the puck
-        pass
+        zone_id = game_state.puck_zone
+        players = game_state.player_by_zone[zone_id]
+        if len(players) == 0:
+            return None
+        return players[random.randint(0, len(players) - 1)]
 
     def player_choose_action(
         self, player_id: int, game_state: GameState
@@ -78,46 +82,66 @@ class PlayerManager:
             player_action.SHOOT,
             player_action.PASS,
         ]
+        actions = []
+        chance = 0.0
 
-        if player_id == game_state.puck_player:
-            option = random.randint(0, len(options) - 1)
-        elif self.players[player_id].position == position.GOALIE:
-            return player_action.NOTHING
-        else:
-            option = random.randint(0, len(options) - 3)
-        return options[option]
+        for option in options:
+            c = self.player_calc_action_success(game_state, player_id, option)
+            if len(actions) == 0:
+                chance = c
+                actions.append(option)
+            if c == chance:
+                actions.append(option)
+            if c > chance:
+                actions = [option]
 
-    def player_choose_reaction_tip(
+        return actions[random.randint(0, len(actions) - 1)]
+
+    def player_calc_action_success(
+        self, game_state: GameState, player_id: int, action: player_action
+    ):
+        """given a player, game state, and action determin the chance of success"""
+        if action == player_action.SHOOT:
+            return self.player_calc_action_shoot_success(player_id, game_state)
+        if action == player_action.PASS:
+            return self.player_calc_action_pass_success(player_id, game_state)[0]
+        if action == player_action.SKATE:
+            return self.player_calc_action_skate_success(player_id, game_state)[0]
+        if action == player_action.HIT:
+            return self.player_calc_action_hit_success(player_id, game_state)[0]
+        return 1.0
+
+    def player_calc_reaction_tip_success(
         self, player_id: int, game_state: GameState
     ) -> float:
         # return chance
         return 1.0
 
-    def player_choose_reaction_block(
+    def player_calc_reaction_block_success(
         self, player_id: int, game_state: GameState
     ) -> float:
         # return chance
         return 1.0
 
-    def player_choose_action_skate(
+    def player_calc_action_skate_success(
         self, player_id: int, game_state: GameState
     ) -> Union[float, int]:
         # return chance and zone id
         return 1.0, game_state.zone_by_player[player_id]
 
-    def player_choose_action_hit(
+    def player_calc_action_hit_success(
         self, player_id: int, game_state: GameState
     ) -> Union[float, int]:
         # return chance and player id of receiver
         return 1.0, 0
 
-    def player_choose_action_shoot(
+    def player_calc_action_shoot_success(
         self, player_id: int, game_state: GameState
     ) -> float:
         # return chance
         return 1.0
 
-    def player_choose_action_pass(
+    def player_calc_action_pass_success(
         self, player_id: int, game_state: GameState
     ) -> Union[float, int]:
         # return chance and player id of receiver
@@ -161,7 +185,7 @@ class PlayerManager:
                 if player.position == position.GOALIE:
                     continue
                 if game_state.team_by_player[player_id] == shooter_team:
-                    if self.player_choose_reaction_tip(player, game_state):
+                    if self.player_calc_reaction_tip_success(player, game_state):
                         # print(f"player {player_id} attepts to tip it!")
                         # TODO: determin if tip is successfull
                         if random.uniform(0, 1) < 0.25:
@@ -170,7 +194,7 @@ class PlayerManager:
                             # print(f"diff = {save_difficulty}")
                 else:
                     if (
-                        self.player_choose_reaction_block(player, game_state)
+                        self.player_calc_reaction_block_success(player, game_state)
                         and not blocked
                     ):
                         blocked = True
@@ -197,7 +221,7 @@ class PlayerManager:
     def player_action_pass(
         self, passer_id: int, game_state: GameState
     ) -> Union[int, int]:
-        _, receiver_id = self.player_choose_action_pass(passer_id, game_state)
+        _, receiver_id = self.player_calc_action_pass_success(passer_id, game_state)
         shooter_team = game_state.team_by_player[passer_id]
 
         pass_path = self.ice_map.shot_paths[game_state.zone_by_player[passer_id]][
@@ -209,7 +233,7 @@ class PlayerManager:
             for player_id in game_state.player_by_zone[zone_id]:
                 player = self.players[player_id]
                 if game_state.team_by_player[player_id] != shooter_team:
-                    if self.player_choose_reaction_block(player, game_state):
+                    if self.player_calc_reaction_block_success(player, game_state):
                         if random.uniform(0, 1) < 0.25:
                             # print(f"player {player_id} intercepts the pass!")
                             return player_id, game_state.zone_by_player[player_id]
