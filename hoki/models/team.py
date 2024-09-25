@@ -2,10 +2,11 @@ from dataclasses import dataclass, field
 from typing import List
 
 from hoki import faker
+from hoki.models.savable import Savable
 
 
 @dataclass
-class Team:
+class Team(Savable):
     """
     A dataclass to hold the data from a single team.
 

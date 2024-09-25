@@ -3,7 +3,7 @@ from enum import Enum, auto
 from typing import List, Union
 
 from hoki.game_state import GameState
-from hoki.pawn import position
+from hoki.models.player import position
 
 
 class player_action(Enum):

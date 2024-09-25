@@ -5,9 +5,9 @@ import pandas as pd
 
 from hoki.game_state import GameState
 from hoki.ice_map import IceMap
-from hoki.pawn import Pawn
+from hoki.models.pawn import Pawn
+from hoki.models.team import Team
 from hoki.player_manager import PlayerManager, player_action
-from hoki.team import Team
 
 # the number of seconds between game ticks
 SLEEP = 0

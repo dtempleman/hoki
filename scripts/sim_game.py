@@ -1,10 +1,11 @@
 import random
 
-from hoki.body import Body
 from hoki.game import GameManager
-from hoki.pawn import Pawn, dominant_hands, generate_player_name, position
-from hoki.statblock import generate_inital_stats
-from hoki.team import Team, generate_team_name
+from hoki.models.body import Body
+from hoki.models.pawn import generate_pawn_name
+from hoki.models.player import Player, dominant_hands, position
+from hoki.models.statblock import generate_inital_stats
+from hoki.models.team import Team, generate_team_name
 
 POSITIONS = [
     position.GOALIE,
@@ -21,8 +22,8 @@ def generate_team(name):
 
 
 def generate_player(pos, id):
-    return Pawn(
-        name=generate_player_name(),
+    return Player(
+        name=generate_pawn_name(),
         position=pos,
         id=id,
         shoots=dominant_hands.LEFT
@@ -38,8 +39,8 @@ def generate_team_players(offset):
     players = []
     for i, pos in enumerate(POSITIONS):
         players.append(
-            Pawn(
-                name=generate_player_name(),
+            Player(
+                name=generate_pawn_name(),
                 position=pos,
                 id=f"p{i + offset}",
                 shoots=dominant_hands.LEFT

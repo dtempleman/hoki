@@ -4,7 +4,8 @@ import pytest
 
 from hoki.game_state import GameState
 from hoki.ice_map import IceMap
-from hoki.pawn import Pawn, position
+from hoki.models.pawn import Pawn
+from hoki.models.player import position
 from hoki.player_manager import PlayerManager
 
 

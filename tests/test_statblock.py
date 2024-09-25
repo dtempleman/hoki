@@ -1,6 +1,6 @@
-from hoki.statblock import StatBlock, generate_inital_stats, get_df_row
-
 from dataclasses import fields
+
+from hoki.models.statblock import StatBlock, generate_inital_stats, get_df_row
 
 
 def test_statblock():
@@ -10,7 +10,10 @@ def test_statblock():
 
     rand_stats = generate_inital_stats()
     for field in fields(StatBlock):
-        assert getattr(rand_stats, field.name) >= 0 and getattr(rand_stats, field.name) <= 1
+        assert (
+            getattr(rand_stats, field.name) >= 0
+            and getattr(rand_stats, field.name) <= 1
+        )
 
     row = get_df_row(rand_stats)
     for idx, field in enumerate(fields(StatBlock)):

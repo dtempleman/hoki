@@ -1,19 +1,21 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
+from hoki.models.savable import Savable
+
 
 @dataclass
-class GameState:
+class GameState(Savable):
     """
     A dataclass containg the game state data
     """
 
     # the player id of the puck
-    puck_player: int
+    puck_player: Optional[str]
     # the zone id of the puck
-    puck_zone: int
+    puck_zone: Optional[int]
 
     # a dict of lists of player ids keyed by team id
     players_by_team: dict

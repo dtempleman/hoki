@@ -1,10 +1,8 @@
-from hoki.team import Team, generate_team_name
+from hoki.models.team import Team, generate_team_name
 
 
 def test_team(create_player):
-    team = Team(
-        name="test"
-    )
+    team = Team(name="test")
     assert str(team) == "test:\n"
     assert team.name == "test"
     assert team.players == []

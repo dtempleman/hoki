@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
+from hoki.models.savable import Savable
+
 
 class dominant_hands(Enum):
     """Enumerate a Bodys dominant hands."""
@@ -10,7 +12,7 @@ class dominant_hands(Enum):
 
 
 @dataclass
-class BodyPart:
+class BodyPart(Savable):
     """
     A dataclass to hold the durrability of a single body part.
 
@@ -27,7 +29,7 @@ class BodyPart:
 
 
 @dataclass
-class Body:
+class Body(Savable):
     """
     A dataclass containing a set of BodyParts.
 
@@ -40,6 +42,7 @@ class Body:
         leg_r (BodyPart): The BodyPart represenging the bodies right leg.
     """
 
+    # note, the attribute name must match the BodyPart name, else saving will break
     head: BodyPart = BodyPart(name="head")
     torso: BodyPart = BodyPart(name="torso")
     arm_r: BodyPart = BodyPart(name="arm_r")

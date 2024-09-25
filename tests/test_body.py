@@ -1,4 +1,4 @@
-from hoki.body import Body, BodyPart, damage_bodypart
+from hoki.models.body import Body, BodyPart, damage_bodypart
 
 
 def test_body():

@@ -6,8 +6,8 @@ from typing import List
 import pandas as pd
 
 from hoki.game import STATS_NAMES, GameManager
-from hoki.pawn import Pawn
-from hoki.team import Team
+from hoki.models.pawn import Pawn
+from hoki.models.team import Team
 
 
 class Season:

@@ -2,6 +2,8 @@ import random
 from dataclasses import dataclass, fields
 from typing import List
 
+from hoki.models.savable import Savable
+
 # the names of the pawn statistics.
 STAT_NAMES = [
     "positioning",
@@ -16,7 +18,7 @@ STAT_NAMES = [
 
 
 @dataclass
-class StatBlock:
+class StatBlock(Savable):
     """
     A dataclass containing all the pawn statistics.
 
@@ -42,6 +44,13 @@ class StatBlock:
     stable: float = 0
 
     shooting_hand: int = 0  # 0 = Right, 1 = Left
+
+    def get_overall_rating(self):
+        """Calculate and return the pawns rating. Calculated as the average of every stats."""
+        x = 0.0
+        for v in get_df_row(self):
+            x += v
+        return round(x / len(get_df_row(self)), 2)
 
 
 def get_df_row(stats: StatBlock) -> List:

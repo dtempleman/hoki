@@ -8,12 +8,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from hoki.body import Body
 from hoki.league import League
-from hoki.pawn import Pawn, dominant_hands, generate_player_name, position
-from hoki.save_manager import save_state_to_xml, xml_to_save_state
-from hoki.statblock import STAT_NAMES, generate_inital_stats, get_df_row
-from hoki.team import Team, generate_team_name
+from hoki.models.body import Body
+from hoki.models.pawn import generate_pawn_name
+from hoki.models.player import Player, dominant_hands, position
+from hoki.models.savestate import SaveState
+from hoki.models.statblock import STAT_NAMES, generate_inital_stats, get_df_row
+
+# from hoki.save_manager import save_state_to_xml, xml_to_save_state
+from hoki.models.team import Team, generate_team_name
 
 DATA_DIR = "data"
 DATA_FILE = "data.xml"
@@ -41,8 +44,8 @@ def generate_teams(n_teams=2):
 
 
 def generate_player(pos, id):
-    return Pawn(
-        name=generate_player_name(),
+    return Player(
+        name=generate_pawn_name(),
         position=pos,
         id=f"p{id}",
         shoots=dominant_hands.LEFT
@@ -58,8 +61,8 @@ def generate_team_players(offset):
     players = []
     for i, pos in enumerate(POSITIONS):
         players.append(
-            Pawn(
-                name=generate_player_name(),
+            Player(
+                name=generate_pawn_name(),
                 position=pos,
                 id=f"p{i + offset}",
                 shoots=dominant_hands.LEFT
@@ -170,22 +173,22 @@ if __name__ == "__main__":
         print("Loading existing dataset...")
         annotation_tree = ET.parse(data_file)
         root = annotation_tree.getroot()
-        players, teams = xml_to_save_state(root)
-
+        save_state = SaveState.from_xml(root)
     else:
         data_gen_start = datetime.now()
         print("Generating new dataset...")
         teams = generate_teams(n_teams=args.n_teams)
         players = generate_players(teams)
-        root = save_state_to_xml(teams=teams, pawns=players)
+        save_state = SaveState(players=players, teams=teams)
+        root = save_state.to_xml()
         ET.ElementTree(root).write(data_file)
         print(f"Generated data for {len(teams)} teams and {len(players)} players.")
         print(f"Generated in {datetime.now() - data_gen_start}")
     print("Complete.")
 
-    players_df = generate_players_df(players)
+    players_df = generate_players_df(save_state.players)
 
-    league = League(teams=teams[: args.n_teams], players=players)
+    league = League(teams=save_state.teams[: args.n_teams], players=save_state.players)
 
     league_start = datetime.now()
     league.run_season()
@@ -200,7 +203,7 @@ if __name__ == "__main__":
     games = league.seasons[0].schedule
 
     print(f"\nTotal games: {len(games)}")
-    print(f"Total teams: {len(teams)}")
+    print(f"Total teams: {len(save_state.teams)}")
     print(f"Completed in: {league_time}")
     print(f"Avg. per game: {league_time/len(games)}")
     print(datetime.now() - start)

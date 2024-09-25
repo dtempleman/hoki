@@ -1,4 +1,4 @@
-from hoki.pawn import position as pos
+from hoki.models.player import position as pos
 
 
 class IceMap:
